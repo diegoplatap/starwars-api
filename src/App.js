@@ -1,47 +1,38 @@
 import "./App.css";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux"
+import { changePage, loadData } from "./actionCreators";
 import CardList from "./CardList";
+import Pagination from "./Pagination"
 
 function App() {
-  const [page, setPage] = useState(1);
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { page, data, loading } = useSelector(state => state)
+  const dispatch = useDispatch()
 
-  function increment() {
-    setPage(page + 1);
+  function next() {
+    dispatch(changePage(page + 1))
   }
 
-  function decrement() {
-    setPage(page - 1);
+  function previous() {
+    dispatch(changePage(page - 1));
   }
 
   useEffect(() => {
-    setLoading(true);
-    axios.get(`https://swapi.dev/api/people/?page=${page}`).then(query => {
-      setData(query.data.results);
-      setLoading(false);
-    });
-  }, [page]);
+    dispatch(loadData(page))
+  }, [dispatch, page]);
 
   return (
     <div>
       <h2 className="title">Star Wars API</h2>
-      {loading ? <p>Loading...</p> : <CardList data={data} />}
-      {loading ? null : <p className="showPage">Page: {page}</p>}
-
-      <div className="changePage">
-        <button
-          className="button"
-          disabled={page === 1 ? true : false}
-          onClick={decrement}
-        >
-          Previous
-        </button>
-        <button className="button" onClick={increment}>
-          Next
-        </button>
-      </div>
+      {loading
+        ? <p>Loading...</p>
+        : (
+          <>
+            <CardList data={data} />
+            <Pagination page={page} handleNext={next} handlePrevious={previous} />
+          </>
+        )
+      }
     </div>
   );
 }
